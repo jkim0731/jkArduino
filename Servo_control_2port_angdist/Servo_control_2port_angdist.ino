@@ -1,7 +1,9 @@
 #include<Servo.h>
 #include <Math.h>
 Servo servocontrol;
-const int inputpin = 13;
+const int servoinput = 13;
+const int piezoinput = 12;
+
 int i;
 int pulse;                           // Initilize an int to store the value of one pulse(HIGH == 1; LOW == 0)
 int state = 0;
@@ -13,21 +15,31 @@ int pulsetime = 41;                  // Initialize the pulse duration, it tells 
 int Msteps = 0;                      // Initialize an int to offer the micro stepper options about what
 // degree to go
 int jitterSteps;
-int Mdif = -8;
+int Mdif = 8;
 int MdelayT = 5000;
+int sound;
 
 void setup() {
   // put your setup code here, to run once:
-  pinMode (inputpin, INPUT);
-  servocontrol.attach(9);
-  Serial.begin(9600);
+  pinMode(servoinput, INPUT);
+  pinMode(piezoinput, INPUT);
+  servocontrol.attach(10);  
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
 
-
-  pulse = digitalRead(inputpin);
+  sound = digitalRead(piezoinput);
+  if (sound == HIGH)
+  {
+    tone(7,3000);
+  }
+  else
+  {
+    noTone(7);
+  }
+  
+  pulse = digitalRead(servoinput);
   if (pulse == HIGH)
   {
     state = 1;
@@ -37,57 +49,39 @@ void loop() {
     state = 0;
   }
 
-
   if (state == 1)
   {
 
     delay(pulsetime);
     for (i = 0; i < bitnum; i = i + 1)
     {
-      pulse = digitalRead(inputpin);
+      pulse = digitalRead(servoinput);
       if (pulse == HIGH)
       {
         bitcode[i] = 1;
-
       }
       else
       {
         bitcode[i] = 0;
-
       }
       delay(pulsetime);
-      //      Serial.print(bitcode[i], BIN);
     }
-    //    Serial.println('\n');
-
 
     Msteps = 0;                                  // Transfer the 8 bit code to a integer
     for (i = 0; i < bitnum; i = i + 1)
     {
       Msteps = bitcode[i] * (pow(2, i) + 0.1) + Msteps;
-      //      Serial.print(Msteps);
-      //      Serial.println('\n');
     }
-    Serial.println(Msteps);
 
-
-    jitterSteps = random(0, 180);
-        Serial.println(jitterSteps);
+    jitterSteps = random(45, 135);
     servocontrol.write(jitterSteps + Mdif);
     delay(300);
     servocontrol.write(Msteps + Mdif);
-    delay(MdelayT);
-    servocontrol.write(90 + Mdif);
-
-
-
+//    delay(MdelayT);
+//    servocontrol.write(90 + Mdif);
   }
   else
   {
     return;
   }
-
-
-
-
 }
